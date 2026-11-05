@@ -195,17 +195,13 @@ Dependencies: `torch`, `scikit-learn`, `matminer`, `pymatgen`, `pandas`,
 - **M8** docs, `matbench_dielectric` parity table, explainer §7 update with
   the old-vs-new API diff.
 
-## 7. Open questions for Rogério
+## 7. Decisions locked (2026-11-05, Rogério: "go with recommended")
 
-1. **Naming:** GitHub repo + PyPI. PyPI forbids dots → `modnet-pt` with
-   import name `modnet_pt` is the clean reading of "modnet.pt". OK, or do you
-   want the repo literally named `modnet.pt` (GitHub allows it) with PyPI
-   name `modnet-pt`?
-2. **License:** MIT recommended (upstream is MIT). Your call.
-3. **Featurization scope:** full featurization in `modnet.pt` (depends on
-   matminer), or should featurization stay optional (extra) so the model
-   install stays light?
-4. **Torch version floor:** 2.x assumed.
-5. **GPU:** CPU-first OK? (torch makes CUDA automatic if present.)
-6. **Repo hosting:** per workspace rules you create the GitHub repo —
-   name + visibility, then I'll wire keys and CI.
+1. **Naming:** repo + PyPI `modnet-pt`, import name `modnet_pt`.
+2. **License:** MIT (matches upstream).
+3. **Featurization:** in the core package (matminer is a hard dependency).
+4. **Torch floor:** ≥ 2.0, CPU-first; CUDA used automatically when present.
+5. **Repo hosting:** Rogério creates `github.com/rogeriog/modnet-pt`; agents
+   never create repos (workspace rule). After creation, run
+   `bin/gh-setup.sh modnet-pt` to mint the deploy key + wire the remote, then
+   push M0.

@@ -10,4 +10,4 @@ joint-learning network, GA hyperparameter search, ensembles/uncertainty.
 - Reference material: `../modnet-nutshell/research/` (pinned upstream v0.4.4,
   code map, both De Breuck papers)
 
-Status: design phase. No implementation until DESIGN.md is approved.
+Status: DESIGN approved (2026-11-05) — M0 scaffold in place; milestones M1–M8 per DESIGN.md. License: MIT.
