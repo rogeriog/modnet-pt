@@ -1,8 +1,10 @@
-"""M0 scaffold tests: package imports, sklearn glue on stubs, API surface.
+"""M0 scaffold tests: package imports, sklearn glue, API surface.
 
 The estimator contract is testable before the numerics land: params are
 stored verbatim (sklearn convention), get_params/set_params/clone work, and
-unimplemented paths raise NotImplementedError (not silent wrong answers).
+unimplemented milestones raise NotImplementedError (not silent wrong
+answers). M1-M3 paths are now implemented and covered in their own test
+modules; this file pins the public contract and defaults.
 """
 
 import numpy as np
@@ -10,7 +12,7 @@ import pytest
 from sklearn.base import clone
 
 import modnet_pt
-from modnet_pt import (FRFeatureSelector, MatminerFeaturizer, MODNetRegressor)
+from modnet_pt import FRFeatureSelector, MatminerFeaturizer, MODNetRegressor
 
 
 def test_version():
@@ -44,17 +46,15 @@ def test_estimator_set_params_chainable():
     assert est.n_feat == 16 and est.loss == "mae"
 
 
-def test_unimplemented_raises_notimplemented():
+def test_unimplemented_milestones_raise_notimplemented():
     X = np.zeros((10, 4))
     y = np.zeros(10)
     with pytest.raises(NotImplementedError):
-        MODNetRegressor().fit(X, y)
+        MODNetRegressor(search="preset").fit(X, y)
     with pytest.raises(NotImplementedError):
-        MODNetRegressor().predict(X)
+        MODNetRegressor(bootstrap=4).fit(X, y)
     with pytest.raises(NotImplementedError):
-        FRFeatureSelector().fit(X, y)
-    with pytest.raises(NotImplementedError):
-        MatminerFeaturizer().fit(X, y)
+        MODNetRegressor(uncertainty=True).fit(X, y)
 
 
 def test_featurizer_preset_validation():

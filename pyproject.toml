@@ -31,3 +31,6 @@ include = ["modnet_pt*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "slow: long-running featurization/training tests (skip with -m 'not slow')",
+]

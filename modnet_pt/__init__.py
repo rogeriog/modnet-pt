@@ -10,10 +10,10 @@ Design contract: ../DESIGN.md (milestones M0–M8).
 __version__ = "0.1.0a0"
 
 __all__ = [
-    "MatminerFeaturizer",
     "FRFeatureSelector",
-    "MODNetRegressor",
     "MODNetClassifier",
+    "MODNetRegressor",
+    "MatminerFeaturizer",
     "__version__",
 ]
 
