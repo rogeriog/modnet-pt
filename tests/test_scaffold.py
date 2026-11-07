@@ -46,15 +46,11 @@ def test_estimator_set_params_chainable():
     assert est.n_feat == 16 and est.loss == "mae"
 
 
-def test_unimplemented_milestones_raise_notimplemented():
+def test_unknown_search_mode_rejected():
     X = np.zeros((10, 4))
     y = np.zeros(10)
-    with pytest.raises(NotImplementedError):
-        MODNetRegressor(search="preset").fit(X, y)
-    with pytest.raises(NotImplementedError):
-        MODNetRegressor(bootstrap=4).fit(X, y)
-    with pytest.raises(NotImplementedError):
-        MODNetRegressor(uncertainty=True).fit(X, y)
+    with pytest.raises(ValueError, match="unknown search mode"):
+        MODNetRegressor(search="bogus").fit(X, y)
 
 
 def test_featurizer_preset_validation():

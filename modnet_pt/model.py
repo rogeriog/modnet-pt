@@ -53,9 +53,17 @@ class TrunkMultiHead(nn.Module):
         num_classes: dict | None = None,
         act: str = "relu",
         out_act: str = "linear",
+        dropout: float = 0.0,
     ):
         super().__init__()
         num_classes = num_classes or {}
+        self.dropout_p = dropout
+
+        def _drop():
+            # MC-dropout (DESIGN.md §2.3): inserted after every hidden
+            # activation, never after the output head. nn.Dropout has no
+            # parameters, so state_dicts stay compatible across dropout=0.
+            return nn.Dropout(dropout) if dropout > 0 else nn.Identity()
 
         flat = [prop for group in targets for sub in group for prop in sub]
         multi_target = len(flat) > 1
@@ -66,6 +74,7 @@ class TrunkMultiHead(nn.Module):
         for width in num_neurons[0]:
             trunk.append(nn.Linear(dim, width))
             trunk.append(_activation(act))
+            trunk.append(_drop())
             if multi_target:
                 trunk.append(nn.BatchNorm1d(width))
             dim = width
@@ -79,6 +88,7 @@ class TrunkMultiHead(nn.Module):
             for width in num_neurons[1]:
                 block.append(nn.Linear(d, width))
                 block.append(_activation(act))
+                block.append(_drop())
                 if multi_target:
                     block.append(nn.BatchNorm1d(width))
                 d = width
@@ -95,6 +105,7 @@ class TrunkMultiHead(nn.Module):
                 for width in num_neurons[2]:
                     block.append(nn.Linear(d, width))
                     block.append(_activation(act))
+                    block.append(_drop())
                     if multi_target:
                         block.append(nn.BatchNorm1d(width))
                     d = width

@@ -1,6 +1,7 @@
 # DESIGN.md — modnet.pt (PyTorch rewrite of MODNet)
 
-**Status: DRAFT — waiting on Rogério's approval before any implementation.**
+**Status: APPROVED (2026-11-05) — M0–M8 implemented; see STATUS.md for
+progress and the deviations log (all documented in module docstrings).**
 Reference: `../modnet-nutshell/research/code-map.md` (upstream pinned at
 `1281977`, v0.4.4) and the two De Breuck papers.
 
@@ -205,3 +206,26 @@ Dependencies: `torch`, `scikit-learn`, `matminer`, `pymatgen`, `pandas`,
    never create repos (workspace rule). After creation, run
    `bin/gh-setup.sh modnet-pt` to mint the deploy key + wire the remote, then
    push M0.
+
+---
+
+## 8. Deviations log (implementation-time, all documented in docstrings)
+
+1. `gen_presets`: empty `n_feat_list` falls back to `[n_feat]` and layer
+   widths clamp to ≥1 — upstream emits an empty grid / zero-width layers
+   for tiny feature counts.
+2. Preset/GA candidates restore best weights on early stop (upstream
+   `restore_best_weights=False`); GA refit passes the winning preset's
+   `xscale` (upstream `fit_preset` silently refits with `"minmax"`).
+3. GA: serial evaluation (no multiprocessing), seeded RNG (upstream uses
+   unseeded globals), upstream fraction-mutation bug fixed
+   (`random.choices` returns a list so only fraction3 ever mutated),
+   parent weights shifted positive (classification −AUC scores would
+   crash upstream `random.choices`).
+4. Bootstrap ensemble: per-member resample seeds (upstream reuses
+   `random_state=2943` → identical resamples for every member).
+5. MC-dropout replaces upstream's deprecated `DenseVariational` BNN
+   (bayesian.py) per §2.3's stated intent; `uncertainty=True` aliases
+   `dropout=0.1`.
+6. `search_folds` (preset) / `nested` (GA, per §2.4 signature) both
+   coerce ≤1 → 5 folds, matching upstream.
