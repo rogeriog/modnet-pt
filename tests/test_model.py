@@ -9,7 +9,7 @@ from sklearn.base import clone
 from sklearn.metrics import mean_absolute_error
 from sklearn.pipeline import Pipeline
 
-from modnet_pt import FRFeatureSelector, MODNetClassifier, MODNetRegressor
+from modnet_pt import FRFeatureSelector, MODNetRegressor
 
 
 def _make_data(n=100, seed=0, n_features=12):
@@ -182,6 +182,16 @@ def test_batchnorm_only_multi_target():
     assert multi_bn == 1
 
 
-def test_classifier_still_stub():
-    with pytest.raises(NotImplementedError):
-        MODNetClassifier().fit(np.zeros((5, 3)), np.zeros(5))
+def test_classifier_logit_heads():
+    # classification heads return raw logits for the loss functions;
+    # softmax/sigmoid are applied at predict time (model.py forward)
+    from modnet_pt.model import TrunkMultiHead
+
+    net = TrunkMultiHead(
+        4, [[["cls"]]], num_classes={"cls": 3},
+        num_neurons=([8], [8], [8], [8]),
+    ).double()
+    out = net(torch.zeros(5, 4).double())
+    assert out[0].shape == (5, 3)
+    # logits are unconstrained (softmax applied later)
+    assert not torch.allclose(out[0], torch.softmax(out[0], dim=-1))

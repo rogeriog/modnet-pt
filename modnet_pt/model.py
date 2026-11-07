@@ -134,11 +134,7 @@ class TrunkMultiHead(nn.Module):
         regression = all(meta["classes"] == 0 for meta in self._head_meta)
         if regression:
             outputs = [self.out_act(out) for out in outputs]
-        else:
-            outputs = [
-                torch.softmax(out, dim=-1)
-                if meta["classes"] >= 2
-                else torch.sigmoid(out)
-                for out, meta in zip(outputs, self._head_meta)
-            ]
+        # classification heads return raw logits: loss functions
+        # (CrossEntropy / BCEWithLogits) expect them, and the estimator
+        # applies softmax/sigmoid at predict time
         return outputs
