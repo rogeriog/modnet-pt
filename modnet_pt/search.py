@@ -150,10 +150,16 @@ def run_preset_search(estimator, X: pd.DataFrame, y: pd.DataFrame,
                           classification=classification)
 
     scores = np.full((len(presets), len(splits)), np.inf)
+    base_seed = getattr(estimator, "random_state", None)
     for i, preset in enumerate(presets):
         for j, (train_idx, val_idx) in enumerate(splits):
             cand = clone(estimator)
             cand.set_params(**_candidate_params(cand, preset, n_feat_avail))
+            if base_seed is not None:
+                # upstream TF inits every fit differently; derive a
+                # reproducible per-candidate seed (deterministic given
+                # random_state, diverse across preset/fold like upstream)
+                cand.set_params(random_state=base_seed * 100003 + i * 131 + j)
             cand.fit(X.iloc[train_idx], y.iloc[train_idx])
             scores[i, j] = cand._preset_val_score(X.iloc[val_idx],
                                                   y.iloc[val_idx])
@@ -164,6 +170,8 @@ def run_preset_search(estimator, X: pd.DataFrame, y: pd.DataFrame,
 
     final = clone(estimator)
     final.set_params(**_candidate_params(final, best, n_feat_avail))
+    if base_seed is not None:
+        final.set_params(random_state=base_seed * 100003 + 999983)
     final.fit(X, y)
 
     info = {
@@ -362,14 +370,17 @@ def _ga_fitness(estimator, individuals, X, y, splits, n_feat_avail,
     documented deviation)."""
     scores = np.full(len(individuals), np.inf)
     keys = set(estimator.get_params())
+    base_seed = getattr(estimator, "random_state", None)
     for i, ind in enumerate(individuals):
         fold_scores = []
-        for train_idx, val_idx in splits:
+        for j, (train_idx, val_idx) in enumerate(splits):
             cand = clone(estimator)
             params = {
                 k: v for k, v in ind.to_params(n_feat_avail, keys).items()
             }
             cand.set_params(**params)
+            if base_seed is not None:
+                cand.set_params(random_state=base_seed * 100003 + i * 131 + j)
             cand.fit(X.iloc[train_idx], y.iloc[train_idx])
             fold_scores.append(
                 cand._preset_val_score(
