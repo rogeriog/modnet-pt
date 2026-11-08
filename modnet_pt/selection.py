@@ -363,16 +363,20 @@ class FRFeatureSelector(TransformerMixin, BaseEstimator):
             if self.random_state is not None
             else DEFAULT_SUBSAMPLE_SEED
         )
-        X_frame = self._as_frame(X)
+        # Positional alignment: X and y need not share index labels
+        # (upstream MODData aligns via iloc; preprocessing.py:893-895).
+        X_frame = self._as_frame(X).reset_index(drop=True)
         if isinstance(y, pd.Series):
             y_frame = y.to_frame()
         elif isinstance(y, pd.DataFrame):
             y_frame = y
         else:
             y_frame = pd.DataFrame(np.asarray(y))
+        y_frame = y_frame.reset_index(drop=True)
 
         if len(X_frame) != len(y_frame):
             raise ValueError("X and y have different numbers of samples.")
+        self.feature_names_in_ = list(X_frame.columns)
 
         # Subsample for the (expensive) NMI computations, mirroring
         # MODData.feature_selection (preprocessing.py:867-902)
